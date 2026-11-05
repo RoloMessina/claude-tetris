@@ -63,7 +63,7 @@ jobs:
                - 1 label priority:* (alta, media, baja)
                - "duplicate" solo si encuentras un issue casi idéntico con gh search issues.
                - Si el evento es "edited", revisa los labels actuales y quita con --remove-label los de tipo/area/priority que ya no apliquen.
-            4. Escribe el diagnóstico en español, en Markdown, en el archivo triage-comment.md (raíz del repo) con estas secciones:
+            4. Escribe el diagnóstico en español en el archivo triage-comment.md (raíz del repo). Todo el contenido debe estar en formato Markdown válido para que GitHub lo renderice correctamente (GitHub Flavored Markdown: encabezados `##`, listas, tablas, bloques de código con ``` y lenguaje, código en línea con `backticks`). No uses HTML ni texto plano sin formato. Usa estas secciones:
                ## Resumen
                ## Clasificación (labels asignados y por qué)
                ## Análisis técnico (archivos y funciones implicadas, con referencias archivo:línea, ej. `tryRotate()`, `clearLines()` en game.js)
