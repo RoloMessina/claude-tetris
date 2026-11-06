@@ -47,6 +47,9 @@ const THEME_KEY = 'tetris-theme';
 let gridColor = '#22222e';
 let highlightColor = 'rgba(255,255,255,0.12)';
 
+let startLevel = 1;
+let gameStartLevel = 1;
+let resumeGuardUntil = 0;
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
 function createBoard() {
@@ -100,6 +103,10 @@ function merge() {
         board[current.y + r][current.x + c] = current.shape[r][c];
 }
 
+function intervalForLevel(lv) {
+  return Math.max(100, 1000 - (lv - 1) * 90);
+}
+
 function clearLines() {
   let cleared = 0;
   for (let r = ROWS - 1; r >= 0; r--) {
@@ -113,8 +120,8 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    level = Math.max(gameStartLevel, Math.floor(lines / 10) + 1);
+    dropInterval = intervalForLevel(level);
     updateHUD();
     combo++;
     if (combo > maxComboGame) maxComboGame = combo;
@@ -258,13 +265,15 @@ function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    hidePauseMenu();
+    resumeGuardUntil = performance.now() + 150;
+    cancelAnimationFrame(animId);
     lastTime = performance.now();
+    dropAccum = 0;
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    showPauseMenu();
   }
 }
 
@@ -290,24 +299,32 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  gameStartLevel = startLevel;
+  level = gameStartLevel;
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = intervalForLevel(level);
   dropAccum = 0;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  hidePauseMenu();
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
 
 document.addEventListener('keydown', e => {
   if (recordsKeyIntercept(e)) return;
-  if (e.code === 'KeyP') { togglePause(); return; }
-  if (paused || gameOver) return;
+  if (e.code === 'KeyP' || e.code === 'Escape') {
+    // Esc cierra el desplegable del select: no debe reanudar
+    if (e.repeat) return;
+    togglePause();
+    return;
+  }
+  if (paused) { blockPausedKeys(e); return; }
+  if (gameOver || performance.now() < resumeGuardUntil) return;
   switch (e.code) {
     case 'ArrowLeft':
       if (!collide(current.shape, current.x - 1, current.y)) current.x--;
@@ -548,6 +565,57 @@ resetRecordsBtn.addEventListener('click', () => {
 });
 
 playBtn.addEventListener('click', startGame);
+
+// ==== Menú de pausa ====
+const START_LEVEL_KEY = 'tetris-start-level';
+const pauseMenu = document.getElementById('pause-menu');
+const pauseResumeBtn = document.getElementById('pause-resume');
+const pauseRestartBtn = document.getElementById('pause-restart');
+const pauseControlsBtn = document.getElementById('pause-controls-btn');
+const pauseControls = document.getElementById('pause-controls');
+const startLevelSelect = document.getElementById('start-level');
+
+function loadStartLevel() {
+  try {
+    const n = parseInt(localStorage.getItem(START_LEVEL_KEY), 10);
+    return n >= 1 && n <= 10 ? n : 1;
+  } catch (e) { return 1; }
+}
+
+function showPauseMenu() {
+  startLevelSelect.value = String(startLevel);
+  pauseMenu.classList.remove('hidden');
+}
+
+function hidePauseMenu() {
+  pauseMenu.classList.add('hidden');
+  pauseControls.classList.add('hidden');
+  pauseControlsBtn.setAttribute('aria-expanded', 'false');
+}
+
+// Con el menú abierto: evita scroll y movimiento; las flechas del select siguen funcionando
+function blockPausedKeys(e) {
+  const t = e.target;
+  if (t && (t.tagName === 'SELECT' || t.tagName === 'BUTTON')) return;
+  if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+}
+
+for (let i = 1; i <= 10; i++) startLevelSelect.add(new Option('Nivel ' + i, String(i)));
+startLevel = loadStartLevel();
+
+startLevelSelect.addEventListener('change', () => {
+  startLevel = parseInt(startLevelSelect.value, 10);
+  try { localStorage.setItem(START_LEVEL_KEY, String(startLevel)); } catch (e) { /* ignorar */ }
+  startLevelSelect.blur();
+});
+pauseResumeBtn.addEventListener('click', () => { pauseResumeBtn.blur(); togglePause(); });
+pauseRestartBtn.addEventListener('click', () => { pauseRestartBtn.blur(); init(); });
+pauseControlsBtn.addEventListener('click', () => {
+  const open = pauseControls.classList.toggle('hidden') === false;
+  pauseControlsBtn.setAttribute('aria-expanded', String(open));
+  pauseControlsBtn.blur();
+});
+// ==== Fin Menú de pausa ====
 
 applyTheme(loadTheme());
 renderStartScreen();
