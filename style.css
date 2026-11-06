@@ -454,3 +454,17 @@ kbd {
   font-size: 11px;
   color: var(--label);
 }
+
+/* ---- Skins ---- */
+.skin-select {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
