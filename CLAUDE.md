@@ -27,5 +27,6 @@ Tres archivos: `index.html` (DOM + dos canvas), `style.css`, `game.js` (toda la 
 ## Notas
 
 - Tema claro/oscuro: los colores viven en variables CSS (`:root` = oscuro, `[data-theme="light"]` = claro). `applyTheme()` en `game.js` fija `data-theme`, guarda en `localStorage` (`tetris-theme`), actualiza `gridColor`/`highlightColor` del canvas y repinta (también en pausa/game over). Por defecto: oscuro.
+- Skins (bloque `// ==== Skins ====` en `game.js`): objeto `SKINS` (`retro`, `neon`, `pastel`, `pixel`) con `colors`, `drawBlock` y opcionalmente `boardBg`/`gridColor`/`nutHole`. `drawBlock()` global delega en `activeSkin`; `applySkin(name)` guarda en `localStorage` (`tetris-skin`), llama a `syncSkinCanvas()` (fondo/grid; `applyTheme` también la invoca) y repinta. Selector `<select id="skin-select">`; el keydown global ignora eventos de SELECT/INPUT. Ortogonal al tema claro/oscuro (Neon fuerza fondo negro).
 - Si se cambia `COLS`, `ROWS` o `BLOCK`, ajustar `width`/`height` del `<canvas id="board">` en `index.html` (`COLS*BLOCK` × `ROWS*BLOCK`). El canvas `next` usa un tamaño de bloque fijo (`NB = 30`) en `drawNext`.
 - El README menciona la ruta `03-tetris/` y "~300 líneas" en la estructura; es solo descriptivo.
