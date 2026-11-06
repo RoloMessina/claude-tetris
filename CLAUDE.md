@@ -24,6 +24,8 @@ Tres archivos: `index.html` (DOM + dos canvas), `style.css`, `game.js` (toda la 
 - Puntuación/nivel viven en `clearLines()` (tabla `LINE_SCORES` × nivel; nivel = `floor(lines/10)+1`; `dropInterval = max(100, 1000 - (level-1)*90)`). Soft drop suma 1 por fila y hard drop 2 por celda.
 - Rotación: `rotateCW` + wall kicks simples en `tryRotate` (offsets horizontales `[0,-1,1,-2,2]`).
 
+- Records (bloque `// ==== Records ====` en `game.js`, antes de las llamadas finales): el juego ya NO arranca solo; al cargar se pinta el tablero vacío (`drawEmptyBoard`) bajo `#start-screen` (clase `.overlay`) y `Jugar`/Enter llama a `startGame()` → `init()`. `localStorage` key `tetris-records` = `{ top:[{name,score,lines,level,date}] (máx 5, desc), bestCombo, maxLines }`, con lectura tolerante a JSON corrupto. `combo`/`maxComboGame` se actualizan en `clearLines()`; `endGame()` llama a `showGameOverRecords()` (actualiza bestCombo/maxLines y muestra `#player-name` si entra en el top). Si no se guarda el nombre, `init()` (vía `resetRecordsState`) lo guarda como "Anónimo". El keydown global delega primero en `recordsKeyIntercept` (ignora INPUT/SELECT/TEXTAREA y bloquea controles en la pantalla de inicio). Nombres siempre con `textContent`.
+
 ## Notas
 
 - Tema claro/oscuro: los colores viven en variables CSS (`:root` = oscuro, `[data-theme="light"]` = claro). `applyTheme()` en `game.js` fija `data-theme`, guarda en `localStorage` (`tetris-theme`), actualiza `gridColor`/`highlightColor` del canvas y repinta (también en pausa/game over). Por defecto: oscuro.
