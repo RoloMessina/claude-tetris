@@ -473,7 +473,7 @@ function showGameOverRecords() {
   const idx = recordIndex(rec.top, score);
   const top = rec.top.slice();
   if (idx >= 0) {
-    pendingEntry = { score, lines, level, date: new Date().toISOString().slice(0, 10), idx };
+    pendingEntry = { score, lines, level, date: new Date().toISOString().slice(0, 10) };
     top.splice(idx, 0, { name: '(tú)', score, lines });
     top.length = Math.min(top.length, MAX_TOP);
     nameForm.classList.remove('hidden');
@@ -491,7 +491,7 @@ function showGameOverRecords() {
 function commitPendingRecord(name) {
   if (!pendingEntry) return -1;
   const rec = loadRecords();
-  const { idx: _ignored, ...entry } = pendingEntry;
+  const entry = pendingEntry;
   entry.name = cleanName(name);
   const idx = recordIndex(rec.top, entry.score);
   pendingEntry = null;
@@ -524,7 +524,6 @@ function recordsKeyIntercept(e) {
 nameForm.addEventListener('submit', e => {
   e.preventDefault();
   const idx = commitPendingRecord(playerNameInput.value);
-  if (idx < 0) return;
   renderTable(goRecordsTable, loadRecords().top, idx);
   nameForm.classList.add('hidden');
 });
